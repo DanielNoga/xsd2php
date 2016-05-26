@@ -374,12 +374,12 @@ class ClassGenerator
             // $generatedProp->setDefaultValue(array(), PropertyValueGenerator::TYPE_AUTO, PropertyValueGenerator::OUTPUT_SINGLE_LINE);
         }
 
-        $docBlock = new DocBlockGenerator();
+        $docblock = new DocBlockGenerator();
         $docblock->setWordWrap(false);
-        $generatedProp->setDocBlock($docBlock);
+        $generatedProp->setDocBlock($docblock);
 
         if ($prop->getDoc()) {
-            $docBlock->setLongDescription($prop->getDoc());
+            $docblock->setLongDescription($prop->getDoc());
         }
         $tag = new PropertyTag($prop->getName(), 'mixed');
 
@@ -413,7 +413,7 @@ class ClassGenerator
             $this->addPropertyToConstructor($class, $prop, $propType);
         }
 
-        $docBlock->setTag($tag);
+        $docblock->setTag($tag);
     }
 
     private function addPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $type)
