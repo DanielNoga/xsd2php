@@ -19,14 +19,6 @@ class ClassGenerator
 
     private function handleBody(Generator\ClassGenerator $class, PHPClass $type)
     {
-        if (!$class->getMethod('__construct')) {
-            $docblock = new DocBlockGenerator('Construct');
-            $docblock->setWordWrap(false);
-            $method = new MethodGenerator("__construct");
-            $method->setDocBlock($docblock);
-            $class->addMethodFromGenerator($method);
-        }
-
         foreach ($type->getProperties() as $prop) {
             if ($prop->getName() !== '__value') {
                 $this->handleProperty($class, $prop);
@@ -40,6 +32,37 @@ class ClassGenerator
 
         if (count($type->getProperties()) === 1 && $type->hasProperty('__value')) {
             return false;
+        }
+
+        return true;
+    }
+
+    private function handleConstructor(Generator\ClassGenerator $class, PHPClass $type)
+    {
+        if (!$class->getMethod('__construct')) {
+            $docblock = new DocBlockGenerator('Construct');
+            $docblock->setWordWrap(false);
+            $method = new MethodGenerator("__construct");
+            $method->setDocBlock($docblock);
+            $class->addMethodFromGenerator($method);
+        }
+
+        $count = 0;
+        foreach ($type->getProperties() as $prop) {
+            if ($prop->getName() !== '__value') {
+                $count++;
+            }
+        }
+
+        foreach ($type->getProperties() as $prop) {
+            if ($prop->getName() !== '__value') {
+                if($count == 1) {
+                    $this->handleConstructorProperty($class, $prop, false);
+                } else {
+                    $this->handleConstructorProperty($class, $prop, true);
+                }
+                
+            }
         }
 
         return true;
@@ -413,18 +436,46 @@ class ClassGenerator
             }
         }
 
-        if (isset($propType)) {
-            $this->addPropertyToConstructor($class, $prop, $propType);
-        }
-
         $docblock->setTag($tag);
+    }
+
+    private function handleConstructorProperty(Generator\ClassGenerator $class, PHPProperty $prop, $hasSingleProperty)
+    {
+        $type = $prop->getType();
+
+        if ($type && $type instanceof PHPClassOf) {
+            $tt = $type->getArg()->getType();
+            $propType = $this->getPhpType($tt);
+        } elseif ($type) {
+
+            if ($this->isNativeType($type)) {
+                $propType = $this->getPhpType($type);
+            } elseif (($p = $this->isOneType($type)) && ($t = $p->getType())) {
+                $propType = $this->getPhpType($t);
+            } else {
+                $propType = $this->getPhpType($prop->getType());
+            }
+        }
+        
+        if (isset($propType)) {
+            if($hasSingleProperty && $type instanceof PHPClassOf) {
+                $this->addObjectPropertyToConstructor($class, $prop, $propType);
+            } elseif (!$hasSingleProperty && !($type instanceof PHPClassOf)) {
+                $this->addPropertyToConstructor($class, $prop, $propType);
+            }
+        }
+    }
+
+    private function addObjectPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $type)
+    {
+        if ($constructor = $class->getMethod('__construct')) {
+            $constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = new " . $type . ";" . PHP_EOL);
+        }
     }
 
     private function addPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $type)
     {
         if ($constructor = $class->getMethod('__construct')) {
-            //$constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = new " . $type . ";" . PHP_EOL);
-
             $param = new ParameterGenerator($prop->getName(), $type);
             $constructor->setParameter($param);
             $constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = \$" . $prop->getName() . ";" . PHP_EOL);
@@ -463,8 +514,7 @@ class ClassGenerator
             }
         }
 
-        if ($this->handleBody($class, $type)) {
-            return true;
-        }
+        $success = $this->handleBody($class, $type) && $this->handleConstructor($class, $type);
+        return $success;
     }
 }
