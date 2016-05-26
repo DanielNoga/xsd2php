@@ -63,7 +63,11 @@ class ClassGenerator
     {
         if (!$class->getNamespace()) {
             if ($this->isNativeType($class)) {
-                return $class->getName();
+                if($class->getName() == "integer") {
+                    return "int";
+                } else {
+                    return $class->getName();
+                }
             }
             return "\\" . $class->getName();
         }
