@@ -21,6 +21,7 @@ class ClassGenerator
     {
         if (!$class->getMethod('__construct')) {
             $docblock = new DocBlockGenerator('Construct');
+            $docblock->setWordWrap(false);
             $method = new MethodGenerator("__construct");
             $method->setDocBlock($docblock);
             $class->addMethodFromGenerator($method);
@@ -74,6 +75,7 @@ class ClassGenerator
         $type = $prop->getType();
 
         $docblock = new DocBlockGenerator('Construct');
+        $docblock->setWordWrap(false);
         $paramTag = new ParamTag("value", "mixed");
         $paramTag->setTypes(($type ? $this->getPhpType($type) : "mixed"));
 
@@ -92,6 +94,7 @@ class ClassGenerator
         $generator->addMethodFromGenerator($method);
 
         $docblock = new DocBlockGenerator('Gets or sets the inner value');
+        $docblock->setWordWrap(false);
         $paramTag = new ParamTag("value", "mixed");
         if ($type && $type instanceof PHPClassOf) {
             $paramTag->setTypes($this->getPhpType($type->getArg()
@@ -129,6 +132,7 @@ class ClassGenerator
         $generator->addMethodFromGenerator($method);
 
         $docblock = new DocBlockGenerator('Gets a string value');
+        $docblock->setWordWrap(false);
         $docblock->setTag(new ReturnTag("string"));
         $method = new MethodGenerator("__toString");
         $method->setDocBlock($docblock);
@@ -140,6 +144,7 @@ class ClassGenerator
     {
         $methodBody = '';
         $docblock = new DocBlockGenerator();
+        $docblock->setWordWrap(false);
 
         $docblock->setShortDescription("Sets a new " . $prop->getName());
 
@@ -204,6 +209,7 @@ class ClassGenerator
 
         if ($prop->getType() instanceof PHPClassOf) {
             $docblock = new DocBlockGenerator();
+            $docblock->setWordWrap(false);
             $docblock->setShortDescription("isset " . $prop->getName());
             if ($prop->getDoc()) {
                 $docblock->setLongDescription($prop->getDoc());
@@ -222,6 +228,7 @@ class ClassGenerator
             $generator->addMethodFromGenerator($method);
 
             $docblock = new DocBlockGenerator();
+            $docblock->setWordWrap(false);
             $docblock->setShortDescription("unset " . $prop->getName());
             if ($prop->getDoc()) {
                 $docblock->setLongDescription($prop->getDoc());
@@ -242,6 +249,7 @@ class ClassGenerator
         // ////
 
         $docblock = new DocBlockGenerator();
+        $docblock->setWordWrap(false);
 
         $docblock->setShortDescription("Gets as " . $prop->getName());
 
@@ -301,6 +309,7 @@ class ClassGenerator
         $propName = $type->getArg()->getName();
 
         $docblock = new DocBlockGenerator();
+        $docblock->setWordWrap(false);
         $docblock->setShortDescription("Adds as $propName");
 
         if ($prop->getDoc()) {
@@ -366,6 +375,7 @@ class ClassGenerator
         }
 
         $docBlock = new DocBlockGenerator();
+        $docblock->setWordWrap(false);
         $generatedProp->setDocBlock($docBlock);
 
         if ($prop->getDoc()) {
@@ -420,6 +430,7 @@ class ClassGenerator
     public function generate(Generator\ClassGenerator $class, PHPClass $type)
     {
         $docblock = new DocBlockGenerator("Class representing " . $type->getName());
+        $docblock->setWordWrap(false);
         if ($type->getDoc()) {
             $docblock->setLongDescription($type->getDoc());
         }
