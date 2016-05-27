@@ -64,6 +64,11 @@ class ClassGenerator
             }
         }
 
+        if($class->getExtendedClass()) {
+            $constructor = $class->getMethod('__construct');
+            $constructor->setBody($constructor->getBody() . "parent::__construct();" . PHP_EOL);
+        }
+
         return true;
     }
 
@@ -446,7 +451,7 @@ class ClassGenerator
         if ($type && $type instanceof PHPClassOf) {
             $tt = $type->getArg()->getType();
             $propType = $this->getPhpType($tt);
-            $this->addObjectPropertyToConstructor($class, $prop, $propType);
+            //$this->addObjectPropertyToConstructor($class, $prop, $propType);
         } elseif ($type) {
 
             if ($this->isNativeType($type)) {
