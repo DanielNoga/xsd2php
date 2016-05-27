@@ -57,11 +57,10 @@ class ClassGenerator
         foreach ($type->getProperties() as $prop) {
             if ($prop->getName() !== '__value') {
                 if($count == 1) {
-                    $this->handleConstructorProperty($class, $prop, false);
-                } else {
                     $this->handleConstructorProperty($class, $prop, true);
+                } else {
+                    $this->handleConstructorProperty($class, $prop, false);
                 }
-                
             }
         }
 
@@ -109,6 +108,7 @@ class ClassGenerator
         $docblock->setTag($paramTag);
 
         $param = new ParameterGenerator("value");
+        $param->setDefaultValue(new Generator\ValueGenerator("null", Generator\ValueGenerator::TYPE_NULL));
         if ($type && !$this->isNativeType($type)) {
             $param->setType($this->getPhpType($type));
         }
@@ -116,7 +116,7 @@ class ClassGenerator
             $param
         ]);
         $method->setDocBlock($docblock);
-        $method->setBody("\$this->value(\$value);");
+        $method->setBody("\$this->value(\$value);" . PHP_EOL);
 
         $generator->addMethodFromGenerator($method);
 
@@ -446,41 +446,39 @@ class ClassGenerator
         if ($type && $type instanceof PHPClassOf) {
             $tt = $type->getArg()->getType();
             $propType = $this->getPhpType($tt);
+            $this->addObjectPropertyToConstructor($class, $prop, $propType);
         } elseif ($type) {
 
             if ($this->isNativeType($type)) {
                 $propType = $this->getPhpType($type);
+                $this->addPropertyToConstructor($class, $prop, $propType);
             } elseif (($p = $this->isOneType($type)) && ($t = $p->getType())) {
                 $propType = $this->getPhpType($t);
+                $this->addPropertyToConstructor($class, $prop, $propType);
             } else {
                 $propType = $this->getPhpType($prop->getType());
-            }
-        }
-        
-        if (isset($propType)) {
-            if($hasSingleProperty && $type instanceof PHPClassOf) {
                 $this->addObjectPropertyToConstructor($class, $prop, $propType);
-            } elseif (!$hasSingleProperty && !($type instanceof PHPClassOf)) {
-                $this->addPropertyToConstructor($class, $prop, $propType);
             }
         }
+
     }
 
-    private function addObjectPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $type)
+    private function addObjectPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $propType)
     {
         if ($constructor = $class->getMethod('__construct')) {
-            $constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = new " . $type . ";" . PHP_EOL);
+            $constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = new " . $propType . ";" . PHP_EOL);
         }
     }
 
-    private function addPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $type)
+    private function addPropertyToConstructor(Generator\ClassGenerator $class, PHPProperty $prop, $propType)
     {
         if ($constructor = $class->getMethod('__construct')) {
-            $param = new ParameterGenerator($prop->getName(), $type);
+            $param = new ParameterGenerator($prop->getName(), $propType);
+            $param->setDefaultValue(new Generator\ValueGenerator("null", Generator\ValueGenerator::TYPE_NULL));
             $constructor->setParameter($param);
-            $constructor->setBody($constructor->getBody() . "\$this->" . $prop->getName() . " = \$" . $prop->getName() . ";" . PHP_EOL);
+            $constructor->setBody($constructor->getBody() .  "\$this->" . $prop->getName() . " = \$" . $prop->getName() . ";" . PHP_EOL);
         }
-   }
+    }
 
     public function generate(Generator\ClassGenerator $class, PHPClass $type)
     {
