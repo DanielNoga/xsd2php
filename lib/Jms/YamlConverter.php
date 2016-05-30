@@ -29,10 +29,10 @@ class YamlConverter extends AbstractConverter
         parent::__construct($namingStrategy);
 
         $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "dateTime", function (Type $type) {
-            return "Goetas\Xsd\XsdToPhp\XMLSchema\DateTime";
+            return 'GoetasWebservices\Xsd\XsdToPhp\XMLSchema\DateTime';
         });
         $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "time", function (Type $type) {
-            return "Goetas\Xsd\XsdToPhp\XMLSchema\Time";
+            return 'GoetasWebservices\Xsd\XsdToPhp\XMLSchema\Time';
         });
         $this->addAliasMap("http://www.w3.org/2001/XMLSchema", "date", function (Type $type) {
             return "DateTime<'Y-m-d'>";
