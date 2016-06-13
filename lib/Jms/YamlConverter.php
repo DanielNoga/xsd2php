@@ -141,7 +141,7 @@ class YamlConverter extends AbstractConverter
             $data = array();
             $ns = $className;
             $class[$ns] = &$data;
-            $data["xml_root_name"] = $element->getName();
+            $data["xml_root_name"] = "t:" . $element->getName();
 
             if ($schema->getTargetNamespace()) {
                 $data["xml_root_namespace"] = $schema->getTargetNamespace();
